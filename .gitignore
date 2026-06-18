@@ -31,3 +31,16 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
+
+# Security & Secrets
+.env
+.env.*
+!.env.example
+*.env
+secrets.json
+appsettings.local.json
+
+# Docker & Containers
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
