@@ -13,6 +13,11 @@ using FitnessRecovery.Features.Workout.Commands.DeleteWorkout;
 using FitnessRecovery.Features.Workout.Queries.GetWorkout;
 using FitnessRecovery.Features.Workout.Queries.GetWorkoutHistory;
 using FitnessRecovery.Features.Workout.Contracts;
+using FitnessRecovery.Features.Health.Commands.CreateHealthRecord;
+using FitnessRecovery.Features.Health.Commands.UpdateHealthRecord;
+using FitnessRecovery.Features.Health.Queries.GetHealthRecord;
+using FitnessRecovery.Features.Health.Queries.GetHealthRecordHistory;
+using FitnessRecovery.Features.Health.Contracts;
 using FitnessRecovery.Infrastructure.Authentication;
 using FitnessRecovery.Infrastructure.Persistence;
 using FitnessRecovery.Infrastructure.Repositories;
@@ -107,6 +112,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ITokenCacheService, TokenCacheService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
+builder.Services.AddScoped<IHealthRecordRepository, HealthRecordRepository>();
 
 // Auto-register Validators
 builder.Services.AddValidatorsFromAssembly(typeof(FitnessRecovery.Features.Auth.Domain.User).Assembly);
@@ -123,6 +129,10 @@ builder.Services.AddScoped<UpdateWorkoutHandler>();
 builder.Services.AddScoped<DeleteWorkoutHandler>();
 builder.Services.AddScoped<GetWorkoutHandler>();
 builder.Services.AddScoped<GetWorkoutHistoryHandler>();
+builder.Services.AddScoped<CreateHealthRecordHandler>();
+builder.Services.AddScoped<UpdateHealthRecordHandler>();
+builder.Services.AddScoped<GetHealthRecordHandler>();
+builder.Services.AddScoped<GetHealthRecordHistoryHandler>();
 
 var app = builder.Build();
 
@@ -168,6 +178,12 @@ app.MapUpdateWorkout();
 app.MapDeleteWorkout();
 app.MapGetWorkout();
 app.MapGetWorkoutHistory();
+
+// Map Health Endpoints Slices
+app.MapCreateHealthRecord();
+app.MapUpdateHealthRecord();
+app.MapGetHealthRecord();
+app.MapGetHealthRecordHistory();
 
 // Automatic DB Migrations on startup
 using (var scope = app.Services.CreateScope())

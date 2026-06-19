@@ -449,6 +449,169 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "12. Create Health Record",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if (jsonData.success) {",
+							"    pm.environment.set(\"healthRecordDate\", \"2026-06-19\");",
+							"    console.log(\"Saved healthRecordDate to environment variables.\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"recordDate\": \"2026-06-19\",\n  \"sleepHours\": 8.0,\n  \"sleepQuality\": \"Good\",\n  \"restingHeartRate\": 60,\n  \"averageHeartRate\": 75,\n  \"steps\": 10000,\n  \"weight\": 75.0,\n  \"caloriesBurned\": 300\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/health-records",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health-records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13. Get Daily Health Record",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordDate}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health-records",
+						"{{healthRecordDate}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "14. Update Health Record",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sleepHours\": 7.5,\n  \"sleepQuality\": \"Excellent\",\n  \"restingHeartRate\": 58,\n  \"averageHeartRate\": 72,\n  \"steps\": 12000,\n  \"weight\": 74.8,\n  \"caloriesBurned\": 400\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordDate}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health-records",
+						"{{healthRecordDate}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "15. Get Health Record History",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/health-records?page=1&pageSize=10",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health-records"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [
