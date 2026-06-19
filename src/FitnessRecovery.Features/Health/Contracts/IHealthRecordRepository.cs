@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FitnessRecovery.Features.Health.Domain;
 using FitnessRecovery.SharedKernel.Models;
@@ -11,4 +12,5 @@ public interface IHealthRecordRepository
     Task<PagedList<HealthRecord>> GetPagedByUserIdAsync(Guid userId, int page, int pageSize);
     Task AddAsync(HealthRecord record);
     Task UpdateAsync(HealthRecord record);
+    Task<List<HealthRecord>> GetByDateRangeAsync(Guid userId, DateOnly startDate, DateOnly endDate);
 }

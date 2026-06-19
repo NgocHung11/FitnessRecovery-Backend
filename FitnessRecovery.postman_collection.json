@@ -752,6 +752,66 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "20. Get Daily Dashboard",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/dashboard/daily",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"dashboard",
+						"daily"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "21. Get Analytics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/dashboard/analytics",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"dashboard",
+						"analytics"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [

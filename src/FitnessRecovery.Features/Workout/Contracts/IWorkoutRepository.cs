@@ -14,4 +14,5 @@ public interface IWorkoutRepository
     Task UpdateAsync(WorkoutSession session);
     Task DeleteAsync(WorkoutSession session);
     Task<List<WorkoutSession>> GetWorkoutsForDateAsync(Guid userId, DateOnly date);
+    Task<List<WorkoutSession>> GetByDateRangeAsync(Guid userId, DateOnly startDate, DateOnly endDate);
 }
