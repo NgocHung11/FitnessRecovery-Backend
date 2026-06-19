@@ -1,8 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using FitnessRecovery.Features.Dashboard.Contracts;
 using FitnessRecovery.Features.Health.Contracts;
 using FitnessRecovery.Features.Health.Domain;
+using FitnessRecovery.Features.Recovery.Contracts;
 using FitnessRecovery.SharedKernel.Models;
 
 namespace FitnessRecovery.Features.Health.Commands.UpdateHealthRecord;
@@ -11,13 +13,19 @@ public class UpdateHealthRecordHandler
 {
     private readonly IHealthRecordRepository _healthRecordRepository;
     private readonly IHealthRecordMongoRepository _healthRecordMongoRepository;
+    private readonly IRecoveryCacheService _recoveryCacheService;
+    private readonly IDashboardCacheService _dashboardCacheService;
 
     public UpdateHealthRecordHandler(
         IHealthRecordRepository healthRecordRepository,
-        IHealthRecordMongoRepository healthRecordMongoRepository)
+        IHealthRecordMongoRepository healthRecordMongoRepository,
+        IRecoveryCacheService recoveryCacheService,
+        IDashboardCacheService dashboardCacheService)
     {
         _healthRecordRepository = healthRecordRepository;
         _healthRecordMongoRepository = healthRecordMongoRepository;
+        _recoveryCacheService = recoveryCacheService;
+        _dashboardCacheService = dashboardCacheService;
     }
 
     public async Task<Result> HandleAsync(UpdateHealthRecordCommand command, CancellationToken cancellationToken = default)
@@ -46,6 +54,11 @@ public class UpdateHealthRecordHandler
 
             await _healthRecordRepository.UpdateAsync(record);
             await _healthRecordMongoRepository.UpsertAsync(record);
+
+            // Invalidate caches
+            await _recoveryCacheService.InvalidateTodayRecoveryAsync(command.UserId);
+            await _dashboardCacheService.InvalidateDailyDashboardAsync(command.UserId);
+            await _dashboardCacheService.InvalidateWeeklyReportsAsync(command.UserId);
 
             return Result.Success();
         }

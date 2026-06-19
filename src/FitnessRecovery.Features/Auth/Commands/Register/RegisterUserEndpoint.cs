@@ -30,6 +30,7 @@ public static class RegisterUserEndpoint
 
             return Results.Ok(ApiResponse<Guid>.CreateSuccess(result.Value, "User registered successfully."));
         })
-        .WithName("RegisterUser");
+        .WithName("RegisterUser")
+        .RequireRateLimiting("auth-policy");
     }
 }

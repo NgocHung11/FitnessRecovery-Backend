@@ -27,6 +27,7 @@ public class RecommendationTests
     private readonly IWorkoutRepository _workoutRepository = Substitute.For<IWorkoutRepository>();
     private readonly IRecommendationRepository _recommendationRepository = Substitute.For<IRecommendationRepository>();
     private readonly IRecoveryAnalysisMongoRepository _recoveryAnalysisMongoRepository = Substitute.For<IRecoveryAnalysisMongoRepository>();
+    private readonly IRecoveryCacheService _recoveryCacheService = Substitute.For<IRecoveryCacheService>();
 
     private readonly GetTodayRecoveryHandler _getTodayRecoveryHandler;
     private readonly GetTodayRecommendationHandler _todayRecommendationHandler;
@@ -39,7 +40,8 @@ public class RecommendationTests
             _healthRecordRepository,
             _workoutRepository,
             _recommendationRepository,
-            _recoveryAnalysisMongoRepository);
+            _recoveryAnalysisMongoRepository,
+            _recoveryCacheService);
 
         _todayRecommendationHandler = new GetTodayRecommendationHandler(_recommendationRepository, _getTodayRecoveryHandler);
         _recommendationHistoryHandler = new GetRecommendationHistoryHandler(_recommendationRepository);

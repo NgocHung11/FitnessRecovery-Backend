@@ -1,3 +1,5 @@
+using FitnessRecovery.Features.Dashboard.Contracts;
+using FitnessRecovery.Features.Recovery.Contracts;
 using FitnessRecovery.Features.Workout.Commands.CreateWorkout;
 using FitnessRecovery.Features.Workout.Commands.UpdateWorkout;
 using FitnessRecovery.Features.Workout.Commands.DeleteWorkout;
@@ -16,6 +18,8 @@ namespace FitnessRecovery.UnitTests;
 public class WorkoutTests
 {
     private readonly IWorkoutRepository _workoutRepository = Substitute.For<IWorkoutRepository>();
+    private readonly IDashboardCacheService _dashboardCacheService = Substitute.For<IDashboardCacheService>();
+    private readonly IRecoveryCacheService _recoveryCacheService = Substitute.For<IRecoveryCacheService>();
     private readonly CreateWorkoutHandler _createHandler;
     private readonly UpdateWorkoutHandler _updateHandler;
     private readonly DeleteWorkoutHandler _deleteHandler;
@@ -24,9 +28,9 @@ public class WorkoutTests
 
     public WorkoutTests()
     {
-        _createHandler = new CreateWorkoutHandler(_workoutRepository);
-        _updateHandler = new UpdateWorkoutHandler(_workoutRepository);
-        _deleteHandler = new DeleteWorkoutHandler(_workoutRepository);
+        _createHandler = new CreateWorkoutHandler(_workoutRepository, _recoveryCacheService, _dashboardCacheService);
+        _updateHandler = new UpdateWorkoutHandler(_workoutRepository, _recoveryCacheService, _dashboardCacheService);
+        _deleteHandler = new DeleteWorkoutHandler(_workoutRepository, _recoveryCacheService, _dashboardCacheService);
         _getHandler = new GetWorkoutHandler(_workoutRepository);
         _getHistoryHandler = new GetWorkoutHistoryHandler(_workoutRepository);
     }

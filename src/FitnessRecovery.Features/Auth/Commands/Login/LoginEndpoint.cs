@@ -31,6 +31,7 @@ public static class LoginEndpoint
 
             return Results.Ok(ApiResponse<LoginResponse>.CreateSuccess(result.Value, "Login successful."));
         })
-        .WithName("Login");
+        .WithName("Login")
+        .RequireRateLimiting("auth-policy");
     }
 }

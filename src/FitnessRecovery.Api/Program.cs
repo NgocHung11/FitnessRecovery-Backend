@@ -1,5 +1,8 @@
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using FitnessRecovery.Api.Middleware;
+using FitnessRecovery.Infrastructure.Caching;
 using FitnessRecovery.Features.Auth.Commands.Login;
 using FitnessRecovery.Features.Auth.Commands.Logout;
 using FitnessRecovery.Features.Auth.Commands.Register;
@@ -87,6 +90,36 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = redisConnectionString;
 });
 
+// Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // 1. Global limit (all endpoints): 60 requests per minute per IP
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        {
+            AutoReplenishment = true,
+            PermitLimit = 60,
+            Window = TimeSpan.FromMinutes(1)
+        });
+    });
+
+    // 2. Auth limit policy: 5 requests per minute per IP
+    options.AddPolicy("auth-policy", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        {
+            AutoReplenishment = true,
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1)
+        });
+    });
+});
+
 // Security & JWT Configurations
 var secretKey = builder.Configuration["Jwt:Key"] ?? "FitnessRecoverySuperSecretKey1234567890!";
 var issuer = builder.Configuration["Jwt:Issuer"] ?? "FitnessRecovery";
@@ -121,6 +154,8 @@ builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ITokenCacheService, TokenCacheService>();
+builder.Services.AddScoped<IDashboardCacheService, DashboardCacheService>();
+builder.Services.AddScoped<IRecoveryCacheService, RecoveryCacheService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IHealthRecordRepository, HealthRecordRepository>();
@@ -169,6 +204,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+app.UseRateLimiter();
 
 // Token Blacklist Middleware checks Redis before auth authorization rules block access
 app.UseMiddleware<TokenBlacklistMiddleware>();

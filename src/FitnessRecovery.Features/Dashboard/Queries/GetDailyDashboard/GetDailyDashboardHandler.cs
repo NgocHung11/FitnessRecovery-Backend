@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FitnessRecovery.Features.Dashboard.Contracts;
 using FitnessRecovery.Features.Dashboard.DTOs;
 using FitnessRecovery.Features.Health.Contracts;
 using FitnessRecovery.Features.Workout.Contracts;
@@ -15,19 +16,29 @@ public class GetDailyDashboardHandler
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IHealthRecordRepository _healthRecordRepository;
     private readonly GetTodayRecoveryHandler _getTodayRecoveryHandler;
+    private readonly IDashboardCacheService _dashboardCacheService;
 
     public GetDailyDashboardHandler(
         IWorkoutRepository workoutRepository,
         IHealthRecordRepository healthRecordRepository,
-        GetTodayRecoveryHandler getTodayRecoveryHandler)
+        GetTodayRecoveryHandler getTodayRecoveryHandler,
+        IDashboardCacheService dashboardCacheService)
     {
         _workoutRepository = workoutRepository;
         _healthRecordRepository = healthRecordRepository;
         _getTodayRecoveryHandler = getTodayRecoveryHandler;
+        _dashboardCacheService = dashboardCacheService;
     }
 
     public async Task<Result<DailyDashboardDto>> HandleAsync(GetDailyDashboardQuery query, CancellationToken cancellationToken = default)
     {
+        // Try get from cache
+        var cachedDashboard = await _dashboardCacheService.GetDailyDashboardAsync(query.UserId);
+        if (cachedDashboard is not null)
+        {
+            return Result.Success(cachedDashboard);
+        }
+
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         // 1. Fetch workouts for today
@@ -66,6 +77,9 @@ public class GetDailyDashboardHandler
             10000, // Default daily step goal
             workoutDtos
         );
+
+        // Save to cache (TTL: 1 hour)
+        await _dashboardCacheService.SetDailyDashboardAsync(query.UserId, dashboard, TimeSpan.FromHours(1));
 
         return Result.Success(dashboard);
     }

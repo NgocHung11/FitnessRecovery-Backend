@@ -31,6 +31,7 @@ public static class RefreshTokenEndpoint
 
             return Results.Ok(ApiResponse<LoginResponse>.CreateSuccess(result.Value, "Token refreshed successfully."));
         })
-        .WithName("RefreshToken");
+        .WithName("RefreshToken")
+        .RequireRateLimiting("auth-policy");
     }
 }

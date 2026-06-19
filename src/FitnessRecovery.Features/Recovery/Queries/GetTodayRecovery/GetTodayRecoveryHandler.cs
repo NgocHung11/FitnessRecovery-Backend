@@ -19,23 +19,33 @@ public class GetTodayRecoveryHandler
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IRecommendationRepository _recommendationRepository;
     private readonly IRecoveryAnalysisMongoRepository _recoveryAnalysisMongoRepository;
+    private readonly IRecoveryCacheService _recoveryCacheService;
 
     public GetTodayRecoveryHandler(
         IRecoveryRepository recoveryRepository,
         IHealthRecordRepository healthRecordRepository,
         IWorkoutRepository workoutRepository,
         IRecommendationRepository recommendationRepository,
-        IRecoveryAnalysisMongoRepository recoveryAnalysisMongoRepository)
+        IRecoveryAnalysisMongoRepository recoveryAnalysisMongoRepository,
+        IRecoveryCacheService recoveryCacheService)
     {
         _recoveryRepository = recoveryRepository;
         _healthRecordRepository = healthRecordRepository;
         _workoutRepository = workoutRepository;
         _recommendationRepository = recommendationRepository;
         _recoveryAnalysisMongoRepository = recoveryAnalysisMongoRepository;
+        _recoveryCacheService = recoveryCacheService;
     }
 
     public async Task<Result<RecoveryAnalysisDto>> HandleAsync(GetTodayRecoveryQuery query, CancellationToken cancellationToken = default)
     {
+        // Try get from cache
+        var cachedRecovery = await _recoveryCacheService.GetTodayRecoveryAsync(query.UserId);
+        if (cachedRecovery is not null)
+        {
+            return Result.Success(cachedRecovery);
+        }
+
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var yesterday = today.AddDays(-1);
 
@@ -106,6 +116,9 @@ public class GetTodayRecoveryHandler
             newAnalysis.WorkoutLoadScore,
             newAnalysis.ActivityScore,
             newAnalysis.GeneratedAt);
+
+        // Save to cache (TTL: 1 hour)
+        await _recoveryCacheService.SetTodayRecoveryAsync(query.UserId, dto, TimeSpan.FromHours(1));
 
         return Result.Success(dto);
     }

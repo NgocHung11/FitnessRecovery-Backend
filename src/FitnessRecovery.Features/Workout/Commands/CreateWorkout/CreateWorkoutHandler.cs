@@ -1,3 +1,5 @@
+using FitnessRecovery.Features.Dashboard.Contracts;
+using FitnessRecovery.Features.Recovery.Contracts;
 using FitnessRecovery.Features.Workout.Contracts;
 using FitnessRecovery.Features.Workout.Domain;
 using FitnessRecovery.SharedKernel.Models;
@@ -7,10 +9,17 @@ namespace FitnessRecovery.Features.Workout.Commands.CreateWorkout;
 public class CreateWorkoutHandler
 {
     private readonly IWorkoutRepository _workoutRepository;
+    private readonly IRecoveryCacheService _recoveryCacheService;
+    private readonly IDashboardCacheService _dashboardCacheService;
 
-    public CreateWorkoutHandler(IWorkoutRepository workoutRepository)
+    public CreateWorkoutHandler(
+        IWorkoutRepository workoutRepository,
+        IRecoveryCacheService recoveryCacheService,
+        IDashboardCacheService dashboardCacheService)
     {
         _workoutRepository = workoutRepository;
+        _recoveryCacheService = recoveryCacheService;
+        _dashboardCacheService = dashboardCacheService;
     }
 
     public async Task<Result<Guid>> HandleAsync(CreateWorkoutCommand command, CancellationToken cancellationToken = default)
@@ -27,6 +36,11 @@ public class CreateWorkoutHandler
                 command.WorkoutDate);
 
             await _workoutRepository.AddAsync(session);
+
+            // Invalidate caches
+            await _recoveryCacheService.InvalidateTodayRecoveryAsync(command.UserId);
+            await _dashboardCacheService.InvalidateDailyDashboardAsync(command.UserId);
+            await _dashboardCacheService.InvalidateWeeklyReportsAsync(command.UserId);
 
             return Result.Success(session.Id);
         }

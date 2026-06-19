@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FitnessRecovery.Features.Dashboard.Contracts;
 using FitnessRecovery.Features.Dashboard.Queries.GetAnalytics;
 using FitnessRecovery.Features.Dashboard.Queries.GetDailyDashboard;
 using FitnessRecovery.Features.Health.Contracts;
@@ -27,6 +28,8 @@ public class DashboardTests
     private readonly IWorkoutRepository _workoutRepository = Substitute.For<IWorkoutRepository>();
     private readonly IRecommendationRepository _recommendationRepository = Substitute.For<IRecommendationRepository>();
     private readonly IRecoveryAnalysisMongoRepository _recoveryAnalysisMongoRepository = Substitute.For<IRecoveryAnalysisMongoRepository>();
+    private readonly IDashboardCacheService _dashboardCacheService = Substitute.For<IDashboardCacheService>();
+    private readonly IRecoveryCacheService _recoveryCacheService = Substitute.For<IRecoveryCacheService>();
 
     private readonly GetTodayRecoveryHandler _getTodayRecoveryHandler;
     private readonly GetDailyDashboardHandler _dailyDashboardHandler;
@@ -39,12 +42,14 @@ public class DashboardTests
             _healthRecordRepository,
             _workoutRepository,
             _recommendationRepository,
-            _recoveryAnalysisMongoRepository);
+            _recoveryAnalysisMongoRepository,
+            _recoveryCacheService);
 
         _dailyDashboardHandler = new GetDailyDashboardHandler(
             _workoutRepository,
             _healthRecordRepository,
-            _getTodayRecoveryHandler);
+            _getTodayRecoveryHandler,
+            _dashboardCacheService);
 
         _analyticsHandler = new GetAnalyticsHandler(
             _recoveryRepository,

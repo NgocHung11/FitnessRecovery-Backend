@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FitnessRecovery.Features.Dashboard.Contracts;
+using FitnessRecovery.Features.Recovery.Contracts;
 using FitnessRecovery.Features.Health.Commands.CreateHealthRecord;
 using FitnessRecovery.Features.Health.Commands.UpdateHealthRecord;
 using FitnessRecovery.Features.Health.Queries.GetHealthRecord;
@@ -19,6 +21,8 @@ public class HealthTests
 {
     private readonly IHealthRecordRepository _healthRecordRepository = Substitute.For<IHealthRecordRepository>();
     private readonly IHealthRecordMongoRepository _healthRecordMongoRepository = Substitute.For<IHealthRecordMongoRepository>();
+    private readonly IDashboardCacheService _dashboardCacheService = Substitute.For<IDashboardCacheService>();
+    private readonly IRecoveryCacheService _recoveryCacheService = Substitute.For<IRecoveryCacheService>();
     private readonly CreateHealthRecordHandler _createHandler;
     private readonly UpdateHealthRecordHandler _updateHandler;
     private readonly GetHealthRecordHandler _getHandler;
@@ -26,8 +30,16 @@ public class HealthTests
 
     public HealthTests()
     {
-        _createHandler = new CreateHealthRecordHandler(_healthRecordRepository, _healthRecordMongoRepository);
-        _updateHandler = new UpdateHealthRecordHandler(_healthRecordRepository, _healthRecordMongoRepository);
+        _createHandler = new CreateHealthRecordHandler(
+            _healthRecordRepository, 
+            _healthRecordMongoRepository,
+            _recoveryCacheService,
+            _dashboardCacheService);
+        _updateHandler = new UpdateHealthRecordHandler(
+            _healthRecordRepository, 
+            _healthRecordMongoRepository,
+            _recoveryCacheService,
+            _dashboardCacheService);
         _getHandler = new GetHealthRecordHandler(_healthRecordRepository);
         _getHistoryHandler = new GetHealthRecordHistoryHandler(_healthRecordRepository);
     }
