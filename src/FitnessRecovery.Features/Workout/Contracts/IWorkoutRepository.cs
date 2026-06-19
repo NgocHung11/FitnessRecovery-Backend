@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FitnessRecovery.Features.Workout.Domain;
 using FitnessRecovery.SharedKernel.Models;
 
@@ -10,4 +13,5 @@ public interface IWorkoutRepository
     Task AddAsync(WorkoutSession session);
     Task UpdateAsync(WorkoutSession session);
     Task DeleteAsync(WorkoutSession session);
+    Task<List<WorkoutSession>> GetWorkoutsForDateAsync(Guid userId, DateOnly date);
 }
