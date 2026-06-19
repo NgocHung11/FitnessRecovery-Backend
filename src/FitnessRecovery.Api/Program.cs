@@ -83,8 +83,16 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Database
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseInMemoryDatabase("FitnessRecoveryDb"));
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
 
 // Redis Cache
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -281,7 +289,14 @@ app.MapGetWeeklyReports();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.MigrateAsync();
+    if (dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    else
+    {
+        await dbContext.Database.EnsureCreatedAsync();
+    }
 
     // Initialize MongoDB indexes and migration sync
     var mongoContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
@@ -310,3 +325,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+public partial class Program { }
