@@ -6,6 +6,8 @@ using FitnessRecovery.Features.Workout.Contracts;
 using FitnessRecovery.Features.Recovery.Contracts;
 using FitnessRecovery.Features.Recovery.Domain;
 using FitnessRecovery.Features.Recovery.DTOs;
+using FitnessRecovery.Features.Recommendation.Contracts;
+using FitnessRecovery.Features.Recommendation.Domain;
 using FitnessRecovery.SharedKernel.Models;
 
 namespace FitnessRecovery.Features.Recovery.Queries.GetTodayRecovery;
@@ -15,15 +17,18 @@ public class GetTodayRecoveryHandler
     private readonly IRecoveryRepository _recoveryRepository;
     private readonly IHealthRecordRepository _healthRecordRepository;
     private readonly IWorkoutRepository _workoutRepository;
+    private readonly IRecommendationRepository _recommendationRepository;
 
     public GetTodayRecoveryHandler(
         IRecoveryRepository recoveryRepository,
         IHealthRecordRepository healthRecordRepository,
-        IWorkoutRepository workoutRepository)
+        IWorkoutRepository workoutRepository,
+        IRecommendationRepository recommendationRepository)
     {
         _recoveryRepository = recoveryRepository;
         _healthRecordRepository = healthRecordRepository;
         _workoutRepository = workoutRepository;
+        _recommendationRepository = recommendationRepository;
     }
 
     public async Task<Result<RecoveryAnalysisDto>> HandleAsync(GetTodayRecoveryQuery query, CancellationToken cancellationToken = default)
@@ -68,6 +73,19 @@ public class GetTodayRecoveryHandler
         else
         {
             await _recoveryRepository.AddAsync(newAnalysis);
+        }
+
+        // 4.5. Upsert recommendation
+        var recommendation = FitnessRecovery.Features.Recommendation.Domain.Recommendation.CreateFromScore(query.UserId, newAnalysis.Id, newAnalysis.RecoveryScore.Value);
+        var existingRecommendation = await _recommendationRepository.GetByAnalysisIdAsync(newAnalysis.Id);
+        if (existingRecommendation is not null)
+        {
+            existingRecommendation.Update(recommendation.RecommendationType, recommendation.Message);
+            await _recommendationRepository.UpdateAsync(existingRecommendation);
+        }
+        else
+        {
+            await _recommendationRepository.AddAsync(recommendation);
         }
 
         // 5. Map to DTO

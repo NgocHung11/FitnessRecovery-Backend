@@ -66,4 +66,14 @@ public class WorkoutRepository : IWorkoutRepository
             .Where(w => w.UserId == userId && w.WorkoutDate >= startDate && w.WorkoutDate < endDate)
             .ToListAsync();
     }
+
+    public async Task<List<WorkoutSession>> GetByDateRangeAsync(Guid userId, DateOnly startDate, DateOnly endDate)
+    {
+        var startDateTime = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var endDateTime = endDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddDays(1);
+        return await _context.WorkoutSessions
+            .Where(w => w.UserId == userId && w.WorkoutDate >= startDateTime && w.WorkoutDate < endDateTime)
+            .OrderBy(w => w.WorkoutDate)
+            .ToListAsync();
+    }
 }

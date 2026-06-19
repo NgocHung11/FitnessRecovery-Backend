@@ -10,6 +10,7 @@ using FitnessRecovery.Features.Recovery.Domain;
 using FitnessRecovery.Features.Recovery.DTOs;
 using FitnessRecovery.Features.Health.Contracts;
 using FitnessRecovery.Features.Workout.Contracts;
+using FitnessRecovery.Features.Recommendation.Contracts;
 using FitnessRecovery.SharedKernel.Models;
 using FluentAssertions;
 using NSubstitute;
@@ -22,12 +23,13 @@ public class RecoveryTests
     private readonly IRecoveryRepository _recoveryRepository = Substitute.For<IRecoveryRepository>();
     private readonly IHealthRecordRepository _healthRecordRepository = Substitute.For<IHealthRecordRepository>();
     private readonly IWorkoutRepository _workoutRepository = Substitute.For<IWorkoutRepository>();
+    private readonly IRecommendationRepository _recommendationRepository = Substitute.For<IRecommendationRepository>();
     private readonly GetTodayRecoveryHandler _todayHandler;
     private readonly GetRecoveryHistoryHandler _historyHandler;
 
     public RecoveryTests()
     {
-        _todayHandler = new GetTodayRecoveryHandler(_recoveryRepository, _healthRecordRepository, _workoutRepository);
+        _todayHandler = new GetTodayRecoveryHandler(_recoveryRepository, _healthRecordRepository, _workoutRepository, _recommendationRepository);
         _historyHandler = new GetRecoveryHistoryHandler(_recoveryRepository);
     }
 

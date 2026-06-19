@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FitnessRecovery.Features.Recovery.Domain;
 using FitnessRecovery.SharedKernel.Models;
@@ -11,4 +12,5 @@ public interface IRecoveryRepository
     Task<PagedList<RecoveryAnalysis>> GetPagedByUserIdAsync(Guid userId, int page, int pageSize);
     Task AddAsync(RecoveryAnalysis analysis);
     Task UpdateAsync(RecoveryAnalysis analysis);
+    Task<List<RecoveryAnalysis>> GetByDateRangeAsync(Guid userId, DateOnly startDate, DateOnly endDate);
 }

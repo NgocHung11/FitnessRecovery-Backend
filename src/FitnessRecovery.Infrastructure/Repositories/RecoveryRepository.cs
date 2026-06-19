@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitnessRecovery.Features.Recovery.Contracts;
@@ -54,5 +55,13 @@ public class RecoveryRepository : IRecoveryRepository
             _context.Set<RecoveryAnalysis>().Update(analysis);
         }
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<RecoveryAnalysis>> GetByDateRangeAsync(Guid userId, DateOnly startDate, DateOnly endDate)
+    {
+        return await _context.Set<RecoveryAnalysis>()
+            .Where(r => r.UserId == userId && r.AnalysisDate >= startDate && r.AnalysisDate <= endDate)
+            .OrderBy(r => r.AnalysisDate)
+            .ToListAsync();
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitnessRecovery.Features.Health.Contracts;
@@ -54,5 +55,13 @@ public class HealthRecordRepository : IHealthRecordRepository
             _context.HealthRecords.Update(record);
         }
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<HealthRecord>> GetByDateRangeAsync(Guid userId, DateOnly startDate, DateOnly endDate)
+    {
+        return await _context.HealthRecords
+            .Where(h => h.UserId == userId && h.RecordDate >= startDate && h.RecordDate <= endDate)
+            .OrderBy(h => h.RecordDate)
+            .ToListAsync();
     }
 }
