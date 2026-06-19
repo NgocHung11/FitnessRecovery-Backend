@@ -17,4 +17,6 @@ public interface IUserRepository
     Task UpdateAsync(User user);
     
     Task<bool> IsEmailUniqueAsync(string email);
+    
+    Task<List<User>> GetAllUsersAsync();
 }

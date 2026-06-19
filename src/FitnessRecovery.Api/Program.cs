@@ -41,8 +41,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-
 using System.Text.Json.Serialization;
+using Hangfire;
+using Hangfire.PostgreSql;
+using FitnessRecovery.Infrastructure.BackgroundJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +91,14 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisConnectionString;
 });
+
+// Hangfire Background Jobs storage and server configuration
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
+builder.Services.AddHangfireServer();
 
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -167,6 +177,11 @@ builder.Services.AddScoped<IRecoveryAnalysisMongoRepository, RecoveryAnalysisMon
 builder.Services.AddScoped<IWeeklyReportMongoRepository, WeeklyReportMongoRepository>();
 builder.Services.AddScoped<MongoMigrationService>();
 
+// Register Background Jobs
+builder.Services.AddScoped<RecoveryCalculationJob>();
+builder.Services.AddScoped<WeeklyReportJob>();
+builder.Services.AddScoped<DatabaseCleanupJob>();
+
 // Auto-register Validators
 builder.Services.AddValidatorsFromAssembly(typeof(FitnessRecovery.Features.Auth.Domain.User).Assembly);
 
@@ -217,6 +232,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+
+// Hangfire Dashboard Endpoint
+app.UseHangfireDashboard();
 
 // Baseline Health Endpoint
 app.MapGet("/api/v1/health", () => 
@@ -271,6 +289,24 @@ using (var scope = app.Services.CreateScope())
 
     var mongoMigration = scope.ServiceProvider.GetRequiredService<MongoMigrationService>();
     await mongoMigration.MigrateAsync();
+
+    // Schedule recurring background jobs
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    
+    recurringJobManager.AddOrUpdate<RecoveryCalculationJob>(
+        "recovery-calculation",
+        job => job.RunAsync(),
+        Cron.Daily());
+
+    recurringJobManager.AddOrUpdate<WeeklyReportJob>(
+        "weekly-report",
+        job => job.RunAsync(),
+        Cron.Weekly(DayOfWeek.Sunday));
+
+    recurringJobManager.AddOrUpdate<DatabaseCleanupJob>(
+        "database-cleanup",
+        job => job.RunAsync(),
+        Cron.Monthly());
 }
 
 app.Run();
