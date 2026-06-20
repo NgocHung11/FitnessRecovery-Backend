@@ -45,8 +45,17 @@ using System.Text.Json.Serialization;
 using Hangfire;
 using Hangfire.PostgreSql;
 using FitnessRecovery.Infrastructure.BackgroundJobs;
+using Serilog;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog structured logging
+builder.Host.UseSerilog((context, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Seq(context.Configuration["Seq:ServerUrl"] ?? "http://localhost:5341"));
 
 // Connection Strings
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
@@ -227,6 +236,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+app.UseHttpMetrics();
 app.UseRateLimiter();
 
 // Token Blacklist Middleware checks Redis before auth authorization rules block access
@@ -250,6 +260,9 @@ app.MapGet("/api/v1/health", () =>
     return Results.Ok(ApiResponse.CreateSuccess("Fitness Recovery API is healthy and operational."));
 })
 .WithName("GetHealth");
+
+// Map Prometheus Metrics Endpoint
+app.MapMetrics();
 
 // Map Authentication Endpoints Slices
 app.MapRegisterUser();
